@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="id" class="h-full">
-<head>
+ <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistem Administrasi Guru</title>
+  <title>Sistem Administrasi Guru - Cloud</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="/_sdk/element_sdk.js"></script>
   <script type="module">
@@ -31,224 +31,280 @@
       setDoc, getDoc, doc,
       signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut
     };
-
     window.dispatchEvent(new Event('firebaseReady'));
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Poppins', sans-serif; }
-    .sidebar-item.active { background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%); color: white; }
-    .card { background: white; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-    .input-field { border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; outline: none; transition: 0.3s; }
+    .grid-pattern { background-image: linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px); background-size: 20px 20px; }
+    .sidebar-item { transition: all 0.3s ease; cursor: pointer; }
+    .sidebar-item.active { background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+    .card { background: white; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); transition: all 0.3s ease; }
+    .input-field { border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; outline: none; }
     .input-field:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
-    .btn-primary { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; border: none; }
+    .btn-primary { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; padding: 12px 24px; border-radius: 12px; font-weight: 600; border: none; cursor: pointer; }
+    .table-header { background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%); font-weight: 600; }
     .hidden { display: none !important; }
-    .grid-pattern { background-image: linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px); background-size: 20px 20px; }
   </style>
-</head>
-<body class="h-full bg-gray-50">
+ </head>
+ <body class="h-full bg-gray-50">
 
   <div id="auth-page" class="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center p-4">
     <div class="grid-pattern absolute inset-0 opacity-20"></div>
-    <div class="card w-full max-w-md p-8 relative z-10">
+    <div class="card w-full max-w-md p-8 relative z-10 bg-white shadow-2xl">
       <div class="text-center mb-8">
-        <div id="auth-icon" class="w-20 h-20 bg-blue-600 rounded-2xl mx-auto mb-4 flex items-center justify-center text-4xl shadow-lg shadow-blue-200 transition-all">📚</div>
+        <div id="auth-icon" class="w-20 h-20 bg-blue-600 rounded-2xl mx-auto mb-4 flex items-center justify-center text-4xl shadow-lg">📚</div>
         <h2 id="auth-title" class="text-3xl font-extrabold text-gray-800">Masuk Guru</h2>
-        <p id="auth-subtitle" class="text-gray-500 mt-2">Kelola data administrasi kelas Anda</p>
+        <p id="auth-subtitle" class="text-gray-500 mt-2 text-sm">Akses data administrasi Anda</p>
       </div>
       <form id="auth-form" class="space-y-4">
         <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-          <input type="email" id="auth-email" class="input-field w-full" placeholder="nama@sekolah.id" required>
+          <label class="block text-xs font-bold text-gray-700 mb-1 uppercase">Email Sekolah</label>
+          <input type="email" id="auth-email" class="input-field w-full" placeholder="email@sekolah.id" required>
         </div>
-        <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
-          <input type="password" id="auth-password" class="input-field w-full" placeholder="••••••••" required>
+        <div class="relative">
+          <label class="block text-xs font-bold text-gray-700 mb-1 uppercase">Password</label>
+          <input type="password" id="auth-password" class="input-field w-full pr-12" placeholder="••••••••" required>
+          <button type="button" onclick="togglePasswordVisibility()" class="absolute right-4 top-9 text-xl focus:outline-none">
+            <span id="eye-icon">👁️</span>
+          </button>
         </div>
-        <button type="submit" id="btn-auth" class="btn-primary w-full text-lg mt-2">Masuk Sekarang</button>
+        <button type="submit" id="btn-auth" class="btn-primary w-full text-lg shadow-lg mt-2">Masuk Sekarang</button>
       </form>
-      <div class="mt-6 text-center text-sm text-gray-600">
-        <p id="auth-toggle-text">Belum punya akun? <button onclick="toggleAuthMode()" class="text-blue-600 font-bold hover:underline">Daftar Akun Baru</button></p>
+      <div class="mt-6 text-center text-sm">
+        <p id="auth-toggle-text" class="text-gray-600">Belum punya akun? <button onclick="toggleAuthMode()" class="text-blue-600 font-bold hover:underline">Daftar Akun Baru</button></p>
       </div>
     </div>
   </div>
 
   <div id="app" class="h-full flex hidden">
-    <aside id="sidebar" class="w-64 bg-white shadow-xl flex flex-col h-full fixed left-0 top-0 z-30">
+    <aside class="w-64 bg-white shadow-xl flex flex-col h-full fixed left-0 top-0 z-30">
       <div class="p-5 border-b border-gray-100">
         <div class="flex items-center gap-3">
-          <div id="sidebar-logo" class="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center text-white text-xl font-bold">📚</div>
-          <div>
-            <h1 class="font-bold text-gray-800 leading-tight">Admin Guru</h1>
-            <p class="text-xs text-gray-500">Sistem Terpadu</p>
-          </div>
+          <div class="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center text-white text-xl font-bold">📚</div>
+          <div><h1 class="font-bold text-gray-800">Admin Guru</h1><p class="text-[10px] text-gray-500">Penyimpanan Cloud</p></div>
         </div>
       </div>
       <nav class="flex-1 p-4 overflow-y-auto">
         <ul class="space-y-2">
           <li><button onclick="navigateTo('dashboard')" class="sidebar-item active w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left" data-page="dashboard"><span>📊</span> Dashboard</button></li>
-          <li><button onclick="navigateTo('profil')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left" data-page="profil"><span>🏫</span> Profil</button></li>
-          <li><button onclick="navigateTo('siswa')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left" data-page="siswa"><span>👨‍🎓</span> Siswa</button></li>
-          </ul>
+          <li><button onclick="navigateTo('profil')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left" data-page="profil"><span>🏫</span> Profil Sistem</button></li>
+          <li><button onclick="navigateTo('siswa')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left" data-page="siswa"><span>👨‍🎓</span> Data Siswa</button></li>
+          <li><button onclick="navigateTo('kas')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left" data-page="kas"><span>💰</span> Uang Kas</button></li>
+        </ul>
       </nav>
       <div class="p-4 border-t border-gray-100">
         <div class="flex items-center gap-3 mb-4">
           <div id="teacher-avatar" class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold overflow-hidden bg-blue-600"></div>
           <div class="flex-1 overflow-hidden">
             <p id="teacher-name" class="font-semibold text-sm text-gray-800 truncate">Guru</p>
-            <p id="teacher-class" class="text-xs text-gray-500 truncate">Kelas -</p>
+            <p id="teacher-class" class="text-[10px] text-gray-500 truncate">Kelas -</p>
           </div>
         </div>
-        <button onclick="logout()" class="w-full text-xs text-red-500 font-bold py-2 border border-red-100 rounded-lg hover:bg-red-50 transition-colors">🚪 Keluar Sistem</button>
+        <button onclick="logout()" class="w-full text-[10px] text-red-500 font-bold py-2 border border-red-100 rounded-lg hover:bg-red-50">🚪 KELUAR</button>
       </div>
     </aside>
 
     <main class="flex-1 ml-64 h-full overflow-auto">
       <div id="page-dashboard" class="page p-6">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">Dashboard Utama</h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6" id="stats-container">
-          <div class="card p-5 border-b-4 border-blue-500"><p class="text-sm text-gray-500">Total Siswa</p><p id="stat-siswa" class="text-3xl font-bold">0</p></div>
-          </div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Dashboard</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="card p-6 border-l-4 border-blue-500"><p class="text-gray-500 text-sm">Total Siswa</p><h3 id="stat-siswa" class="text-4xl font-bold">0</h3></div>
+          <div class="card p-6 border-l-4 border-green-500"><p class="text-gray-500 text-sm">Saldo Kas</p><h3 id="stat-kas" class="text-4xl font-bold">Rp 0</h3></div>
+        </div>
       </div>
 
       <div id="page-profil" class="page p-6 hidden">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">Profil Saya & Sekolah</h2>
-        <div class="card p-6 space-y-4">
-          <div class="grid grid-cols-2 gap-4">
-            <div><label class="block text-sm font-medium mb-1">Nama Wali Kelas</label><input type="text" id="nama-wali" class="input-field w-full"></div>
-            <div><label class="block text-sm font-medium mb-1">Kelas yang Diampu</label><input type="text" id="kelas-diampu" class="input-field w-full"></div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Profil & Identitas</h2>
+        <div class="card p-8 max-w-3xl space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div><label class="block text-sm font-bold mb-2">Nama Sekolah</label><input type="text" id="nama-sekolah" class="input-field w-full"></div>
+            <div><label class="block text-sm font-bold mb-2">Nama Wali Kelas</label><input type="text" id="nama-wali" class="input-field w-full"></div>
+            <div><label class="block text-sm font-bold mb-2">Kelas Diampu</label><input type="text" id="kelas-diampu" class="input-field w-full"></div>
           </div>
           <button onclick="saveProfilData()" class="btn-primary">💾 Simpan Perubahan</button>
+        </div>
+      </div>
+
+      <div id="page-siswa" class="page p-6 hidden">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-800">Daftar Siswa</h2>
+          <button onclick="showAddSiswaModal()" class="btn-primary">➕ Tambah Siswa</button>
+        </div>
+        <div class="card overflow-hidden">
+          <table class="w-full text-left">
+            <thead class="table-header">
+              <tr><th class="p-4">No</th><th class="p-4">NIS</th><th class="p-4">Nama</th><th class="p-4">Aksi</th></tr>
+            </thead>
+            <tbody id="siswa-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div id="page-kas" class="page p-6 hidden">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Manajemen Kas</h2>
+        <div class="card p-6 text-center bg-blue-600 text-white mb-6">
+          <p class="opacity-80">Total Saldo</p>
+          <h3 id="saldo-display" class="text-4xl font-bold">Rp 0</h3>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <button onclick="showKasModal('masuk')" class="btn-primary bg-emerald-500">➕ Pemasukan</button>
+            <button onclick="showKasModal('keluar')" class="btn-primary bg-rose-500">➖ Pengeluaran</button>
         </div>
       </div>
     </main>
   </div>
 
+  <div id="modal-container" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal()"></div>
+    <div id="modal-content" class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative z-10"></div>
+  </div>
+
   <div id="toast-container" class="fixed top-4 right-4 z-[200]"></div>
 
   <script>
-    // ==================== STATE & AUTH ====================
-    let appData = { profil: {}, siswa: [], presensi: {}, mapel: [], nilai: {}, jurnal: [], kas: { masuk: [], keluar: [] }, tabungan: [] };
+    let appData = { profil: {}, siswa: [], kas: { masuk: [], keluar: [] } };
     let currentUser = null;
     let isRegisterMode = false;
 
     async function initApp() {
       await new Promise(r => window.firebaseAuth ? r() : window.addEventListener('firebaseReady', r, {once:true}));
-      const { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } = window.firebaseModules;
-      const auth = window.firebaseAuth;
-
-      onAuthStateChanged(auth, async (user) => {
+      window.firebaseModules.onAuthStateChanged(window.firebaseAuth, async (user) => {
         if (user) {
           currentUser = user;
           document.getElementById('auth-page').classList.add('hidden');
           document.getElementById('app').classList.remove('hidden');
-          await loadAllDataFromFirebase();
+          await loadData();
         } else {
           currentUser = null;
           document.getElementById('auth-page').classList.remove('hidden');
           document.getElementById('app').classList.add('hidden');
         }
       });
+      document.getElementById('auth-form').onsubmit = handleAuth;
+    }
 
-      document.getElementById('auth-form').onsubmit = async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('auth-email').value;
-        const password = document.getElementById('auth-password').value;
-        const btn = document.getElementById('btn-auth');
-        btn.disabled = true; btn.textContent = 'Memproses...';
-
-        try {
-          if (isRegisterMode) {
-            await createUserWithEmailAndPassword(auth, email, password);
-            showToast('Akun berhasil didaftarkan!', 'success');
-          } else {
-            await signInWithEmailAndPassword(auth, email, password);
-            showToast('Berhasil masuk!', 'success');
-          }
-        } catch (error) {
-          showToast('Gagal: ' + error.message, 'error');
-        } finally {
-          btn.disabled = false; btn.textContent = isRegisterMode ? 'Daftar Sekarang' : 'Masuk Sekarang';
+    async function handleAuth(e) {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value;
+      const password = document.getElementById('auth-password').value;
+      const btn = document.getElementById('btn-auth');
+      btn.disabled = true; btn.textContent = 'Memproses...';
+      try {
+        if (isRegisterMode) {
+          await window.firebaseModules.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+          showToast('Akun berhasil dibuat!', 'success');
+        } else {
+          await window.firebaseModules.signInWithEmailAndPassword(window.firebaseAuth, email, password);
+          showToast('Selamat datang!', 'success');
         }
-      };
+      } catch (err) { showToast(err.message, 'error'); }
+      finally { btn.disabled = false; btn.textContent = isRegisterMode ? 'Daftar Sekarang' : 'Masuk Sekarang'; }
     }
 
     function toggleAuthMode() {
       isRegisterMode = !isRegisterMode;
       document.getElementById('auth-title').textContent = isRegisterMode ? "Daftar Akun" : "Masuk Guru";
-      document.getElementById('btn-auth').textContent = isRegisterMode ? "Daftar Sekarang" : "Masuk Sekarang";
+      document.getElementById('btn-auth').textContent = isRegisterMode ? "Daftar Akun Baru" : "Masuk Sekarang";
       document.getElementById('auth-toggle-text').innerHTML = isRegisterMode ? 
         `Sudah punya akun? <button onclick="toggleAuthMode()" class="text-blue-600 font-bold hover:underline">Masuk di sini</button>` :
         `Belum punya akun? <button onclick="toggleAuthMode()" class="text-blue-600 font-bold hover:underline">Daftar Akun Baru</button>`;
     }
 
-    async function logout() {
-      await window.firebaseModules.signOut(window.firebaseAuth);
+    function togglePasswordVisibility() {
+      const pass = document.getElementById('auth-password');
+      const eye = document.getElementById('eye-icon');
+      if(pass.type === 'password') { pass.type = 'text'; eye.textContent = '🙈'; }
+      else { pass.type = 'password'; eye.textContent = '👁️'; }
     }
 
-    // ==================== DATA SYNC ====================
-    async function loadAllDataFromFirebase() {
-      if (!currentUser) return;
-      const { doc, getDoc } = window.firebaseModules;
-      try {
-        const snap = await getDoc(doc(window.firebaseDB, 'userData', currentUser.uid));
-        if (snap.exists()) Object.assign(appData, snap.data());
-        refreshAllUI();
-      } catch (e) { showToast('Gagal memuat data', 'error'); }
+    async function logout() { await window.firebaseModules.signOut(window.firebaseAuth); }
+
+    async function loadData() {
+      const snap = await window.firebaseModules.getDoc(window.firebaseModules.doc(window.firebaseDB, 'userData', currentUser.uid));
+      if (snap.exists()) appData = snap.data();
+      refreshUI();
     }
 
-    async function saveToFirebase(key, data) {
-      if (!currentUser) return;
-      appData[key] = data;
-      const { doc, setDoc } = window.firebaseModules;
-      try {
-        await setDoc(doc(window.firebaseDB, 'userData', currentUser.uid), JSON.parse(JSON.stringify(appData)));
-        refreshAllUI();
-        return true;
-      } catch (e) { showToast('Gagal menyimpan ke server', 'error'); }
+    async function syncData(key, val) {
+      appData[key] = val;
+      await window.firebaseModules.setDoc(window.firebaseModules.doc(window.firebaseDB, 'userData', currentUser.uid), JSON.parse(JSON.stringify(appData)));
+      refreshUI();
     }
 
-    // ==================== UI CORE ====================
     function navigateTo(page) {
       document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
       document.getElementById(`page-${page}`).classList.remove('hidden');
       document.querySelectorAll('.sidebar-item').forEach(i => {
-        i.classList.remove('active');
-        if(i.dataset.page === page) i.classList.add('active');
+        i.classList.toggle('active', i.dataset.page === page);
       });
     }
 
-    function refreshAllUI() {
-      // Update Profil UI
+    function refreshUI() {
       const p = appData.profil;
+      document.getElementById('stat-siswa').textContent = appData.siswa.length;
+      document.getElementById('nama-sekolah').value = p.namaSekolah || '';
       document.getElementById('nama-wali').value = p.waliNama || '';
       document.getElementById('kelas-diampu').value = p.kelasDiampu || '';
-      
-      // Update Stats
-      document.getElementById('stat-siswa').textContent = appData.siswa.length;
-      
-      // Update Sidebar Info & Inisial
+
       const name = p.waliNama || currentUser.email.split('@')[0];
       const initial = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0,2);
       document.getElementById('teacher-name').textContent = name;
       document.getElementById('teacher-class').textContent = p.kelasDiampu || 'Kelas -';
-      document.getElementById('teacher-avatar').innerHTML = p.waliFoto ? 
-        `<img src="${p.waliFoto}" class="w-full h-full object-cover">` : 
-        `<div class="w-full h-full flex items-center justify-center bg-blue-600 text-white">${initial}</div>`;
+      document.getElementById('teacher-avatar').innerHTML = initial;
+
+      const totalMasuk = (appData.kas.masuk || []).reduce((s, k) => s + k.jumlah, 0);
+      const totalKeluar = (appData.kas.keluar || []).reduce((s, k) => s + k.jumlah, 0);
+      const saldo = totalMasuk - totalKeluar;
+      document.getElementById('stat-kas').textContent = 'Rp ' + saldo.toLocaleString('id-ID');
+      document.getElementById('saldo-display').textContent = 'Rp ' + saldo.toLocaleString('id-ID');
+
+      const tbody = document.getElementById('siswa-table-body');
+      tbody.innerHTML = appData.siswa.length ? appData.siswa.map((s, i) => `
+        <tr class="border-b">
+          <td class="p-4">${i+1}</td><td class="p-4">${s.nis}</td><td class="p-4 font-medium">${s.nama}</td>
+          <td class="p-4"><button onclick="deleteSiswa(${i})" class="text-red-500">🗑️</button></td>
+        </tr>
+      `).join('') : '<tr><td colspan="4" class="p-8 text-center text-gray-400">Kosong</td></tr>';
     }
 
     async function saveProfilData() {
-      const p = {
+      await syncData('profil', {
+        namaSekolah: document.getElementById('nama-sekolah').value,
         waliNama: document.getElementById('nama-wali').value,
         kelasDiampu: document.getElementById('kelas-diampu').value
-      };
-      await saveToFirebase('profil', p);
-      showToast('Profil diperbarui', 'success');
+      });
+      showToast('Profil disimpan!', 'success');
     }
 
+    function showAddSiswaModal() {
+      document.getElementById('modal-content').innerHTML = `
+        <h3 class="text-xl font-bold mb-4">Tambah Siswa</h3>
+        <div class="space-y-4">
+          <input type="text" id="add-nis" class="input-field w-full" placeholder="NIS">
+          <input type="text" id="add-nama" class="input-field w-full" placeholder="Nama">
+          <button onclick="doAddSiswa()" class="btn-primary w-full">Simpan</button>
+        </div>`;
+      openModal();
+    }
+
+    async function doAddSiswa() {
+      const nis = document.getElementById('add-nis').value;
+      const nama = document.getElementById('add-nama').value;
+      if(!nis || !nama) return;
+      await syncData('siswa', [...appData.siswa, { nis, nama }]);
+      closeModal();
+    }
+
+    async function deleteSiswa(idx) {
+      if(confirm('Hapus?')) await syncData('siswa', appData.siswa.filter((_, i) => i !== idx));
+    }
+
+    function openModal() { document.getElementById('modal-container').classList.remove('hidden'); }
+    function closeModal() { document.getElementById('modal-container').classList.add('hidden'); }
     function showToast(msg, type) {
       const t = document.createElement('div');
-      t.className = `p-4 mb-2 rounded-lg text-white shadow-lg ${type==='success'?'bg-green-500':'bg-red-500'}`;
+      t.className = `p-4 mb-2 rounded-xl text-white shadow-lg ${type==='success'?'bg-emerald-600':'bg-rose-600'}`;
       t.textContent = msg;
       document.getElementById('toast-container').appendChild(t);
       setTimeout(() => t.remove(), 3000);
@@ -256,5 +312,5 @@
 
     initApp();
   </script>
-</body>
+ </body>
 </html>
