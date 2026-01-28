@@ -1,274 +1,260 @@
-<!DOCTYPE html>
-<html lang="id">
+<!doctype html>
+<html lang="id" class="h-full">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Admin SDIT AL-KAROMAH</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Administrasi Guru</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js';
+    import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js';
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
 
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .font-arabic { font-family: 'Amiri', serif; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        
-        @media print {
-            .no-print { display: none !important; }
-            .print-only { display: block !important; }
-            body { background: white; }
-            .print-container { padding: 0 !important; margin: 0 !important; border: none !important; box-shadow: none !important; }
-        }
-        .print-only { display: none; }
-    </style>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD_LYfkdMYDNtb-0e7G-AIaAWGlqkwdxeI",
+      authDomain: "workbook-7d27d.firebaseapp.com",
+      projectId: "workbook-7d27d",
+      storageBucket: "workbook-7d27d.firebasestorage.app",
+      messagingSenderId: "943998083933",
+      appId: "1:943998083933:web:d6ef2f9a26947ae13b3eb4",
+      measurementId: "G-Z5RK0PRESH"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    window.firebaseDB = db;
+    window.firebaseAuth = auth;
+    window.firebaseModules = {
+      setDoc, getDoc, doc,
+      signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut
+    };
+
+    window.dispatchEvent(new Event('firebaseReady'));
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Poppins', sans-serif; }
+    .sidebar-item.active { background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%); color: white; }
+    .card { background: white; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .input-field { border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; outline: none; transition: 0.3s; }
+    .input-field:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+    .btn-primary { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; border: none; }
+    .hidden { display: none !important; }
+    .grid-pattern { background-image: linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px); background-size: 20px 20px; }
+  </style>
 </head>
-<body class="bg-slate-50">
-    <div id="root"></div>
+<body class="h-full bg-gray-50">
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+  <div id="auth-page" class="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center p-4">
+    <div class="grid-pattern absolute inset-0 opacity-20"></div>
+    <div class="card w-full max-w-md p-8 relative z-10">
+      <div class="text-center mb-8">
+        <div id="auth-icon" class="w-20 h-20 bg-blue-600 rounded-2xl mx-auto mb-4 flex items-center justify-center text-4xl shadow-lg shadow-blue-200 transition-all">📚</div>
+        <h2 id="auth-title" class="text-3xl font-extrabold text-gray-800">Masuk Guru</h2>
+        <p id="auth-subtitle" class="text-gray-500 mt-2">Kelola data administrasi kelas Anda</p>
+      </div>
+      <form id="auth-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+          <input type="email" id="auth-email" class="input-field w-full" placeholder="nama@sekolah.id" required>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+          <input type="password" id="auth-password" class="input-field w-full" placeholder="••••••••" required>
+        </div>
+        <button type="submit" id="btn-auth" class="btn-primary w-full text-lg mt-2">Masuk Sekarang</button>
+      </form>
+      <div class="mt-6 text-center text-sm text-gray-600">
+        <p id="auth-toggle-text">Belum punya akun? <button onclick="toggleAuthMode()" class="text-blue-600 font-bold hover:underline">Daftar Akun Baru</button></p>
+      </div>
+    </div>
+  </div>
 
-        const Lucide = ({ name, size = 20, className = "" }) => {
-            const IconTag = lucide[name];
-            return IconTag ? <IconTag size={size} className={className} /> : null;
-        };
+  <div id="app" class="h-full flex hidden">
+    <aside id="sidebar" class="w-64 bg-white shadow-xl flex flex-col h-full fixed left-0 top-0 z-30">
+      <div class="p-5 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+          <div id="sidebar-logo" class="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center text-white text-xl font-bold">📚</div>
+          <div>
+            <h1 class="font-bold text-gray-800 leading-tight">Admin Guru</h1>
+            <p class="text-xs text-gray-500">Sistem Terpadu</p>
+          </div>
+        </div>
+      </div>
+      <nav class="flex-1 p-4 overflow-y-auto">
+        <ul class="space-y-2">
+          <li><button onclick="navigateTo('dashboard')" class="sidebar-item active w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left" data-page="dashboard"><span>📊</span> Dashboard</button></li>
+          <li><button onclick="navigateTo('profil')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left" data-page="profil"><span>🏫</span> Profil</button></li>
+          <li><button onclick="navigateTo('siswa')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left" data-page="siswa"><span>👨‍🎓</span> Siswa</button></li>
+          </ul>
+      </nav>
+      <div class="p-4 border-t border-gray-100">
+        <div class="flex items-center gap-3 mb-4">
+          <div id="teacher-avatar" class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold overflow-hidden bg-blue-600"></div>
+          <div class="flex-1 overflow-hidden">
+            <p id="teacher-name" class="font-semibold text-sm text-gray-800 truncate">Guru</p>
+            <p id="teacher-class" class="text-xs text-gray-500 truncate">Kelas -</p>
+          </div>
+        </div>
+        <button onclick="logout()" class="w-full text-xs text-red-500 font-bold py-2 border border-red-100 rounded-lg hover:bg-red-50 transition-colors">🚪 Keluar Sistem</button>
+      </div>
+    </aside>
 
-        const App = () => {
-            const [activeTab, setActiveTab] = useState('dashboard');
-            
-            // --- DATA STATE ---
-            const [students, setStudents] = useState([
-                { id: 1, name: "Abdullah Ali", nis: "1001" },
-                { id: 2, name: "Siti Fatimah", nis: "1002" },
-                { id: 3, name: "Zaid bin Haritsah", nis: "1003" }
-            ]);
+    <main class="flex-1 ml-64 h-full overflow-auto">
+      <div id="page-dashboard" class="page p-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Dashboard Utama</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6" id="stats-container">
+          <div class="card p-5 border-b-4 border-blue-500"><p class="text-sm text-gray-500">Total Siswa</p><p id="stat-siswa" class="text-3xl font-bold">0</p></div>
+          </div>
+      </div>
 
-            const [subjects, setSubjects] = useState([
-                { id: 1, name: "Aqidah Akhlak" },
-                { id: 2, name: "Bahasa Arab" },
-                { id: 3, name: "Fiqih" }
-            ]);
+      <div id="page-profil" class="page p-6 hidden">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Profil Saya & Sekolah</h2>
+        <div class="card p-6 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div><label class="block text-sm font-medium mb-1">Nama Wali Kelas</label><input type="text" id="nama-wali" class="input-field w-full"></div>
+            <div><label class="block text-sm font-medium mb-1">Kelas yang Diampu</label><input type="text" id="kelas-diampu" class="input-field w-full"></div>
+          </div>
+          <button onclick="saveProfilData()" class="btn-primary">💾 Simpan Perubahan</button>
+        </div>
+      </div>
+    </main>
+  </div>
 
-            const [attendance, setAttendance] = useState({}); 
-            const [grades, setGrades] = useState({}); 
-            const [journals, setJournals] = useState([]);
+  <div id="toast-container" class="fixed top-4 right-4 z-[200]"></div>
 
-            // --- HELPERS ---
-            const getAbsentList = (date) => {
-                const dayData = attendance[date] || {};
-                return students
-                    .filter(s => dayData[s.id] && dayData[s.id] !== 'H')
-                    .map(s => `${s.name} (${dayData[s.id]})`)
-                    .join(", ") || "Hadir Semua";
-            };
+  <script>
+    // ==================== STATE & AUTH ====================
+    let appData = { profil: {}, siswa: [], presensi: {}, mapel: [], nilai: {}, jurnal: [], kas: { masuk: [], keluar: [] }, tabungan: [] };
+    let currentUser = null;
+    let isRegisterMode = false;
 
-            const handlePrint = () => {
-                window.print();
-            };
+    async function initApp() {
+      await new Promise(r => window.firebaseAuth ? r() : window.addEventListener('firebaseReady', r, {once:true}));
+      const { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } = window.firebaseModules;
+      const auth = window.firebaseAuth;
 
-            // --- COMPONENTS ---
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          currentUser = user;
+          document.getElementById('auth-page').classList.add('hidden');
+          document.getElementById('app').classList.remove('hidden');
+          await loadAllDataFromFirebase();
+        } else {
+          currentUser = null;
+          document.getElementById('auth-page').classList.remove('hidden');
+          document.getElementById('app').classList.add('hidden');
+        }
+      });
 
-            const Sidebar = () => (
-                <aside className="w-64 bg-white border-r h-screen p-6 shrink-0 no-print">
-                    <div className="flex items-center space-x-3 mb-10">
-                        <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white font-black">A</div>
-                        <h1 className="font-black text-xl text-slate-800">Alkaromah</h1>
-                    </div>
-                    <nav className="space-y-2">
-                        {[
-                            { id: 'dashboard', icon: 'LayoutDashboard', label: 'Dashboard' },
-                            { id: 'students', icon: 'Users', label: 'Siswa & Presensi' },
-                            { id: 'grades', icon: 'BookOpen', label: 'Input Nilai' },
-                            { id: 'journal', icon: 'Jurnal Harian', label: 'Jurnal Harian' },
-                            { id: 'report', icon: 'Printer', label: 'Rekap & Laporan' }
-                        ].map(item => (
-                            <button key={item.id} onClick={() => setActiveTab(item.id)}
-                                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab === item.id ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-500 hover:bg-emerald-50'}`}>
-                                <Lucide name={item.icon === 'Jurnal Harian' ? 'FileText' : item.icon} /> <span>{item.label}</span>
-                            </button>
-                        ))}
-                    </nav>
-                </aside>
-            );
+      document.getElementById('auth-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('auth-email').value;
+        const password = document.getElementById('auth-password').value;
+        const btn = document.getElementById('btn-auth');
+        btn.disabled = true; btn.textContent = 'Memproses...';
 
-            // Tampilan Laporan & Rekap
-            const ReportView = () => (
-                <div className="space-y-8 no-print">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-white p-8 rounded-3xl border shadow-sm hover:border-emerald-500 transition-all cursor-pointer group" onClick={handlePrint}>
-                            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-all">
-                                <Lucide name="Printer" />
-                            </div>
-                            <h3 className="font-black text-lg">Cetak Rekap Nilai</h3>
-                            <p className="text-sm text-slate-500">Cetak seluruh daftar nilai mata pelajaran siswa dalam satu lembar.</p>
-                        </div>
-                        <div className="bg-white p-8 rounded-3xl border shadow-sm hover:border-blue-500 transition-all cursor-pointer group" onClick={handlePrint}>
-                            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                                <Lucide name="FileSpreadsheet" />
-                            </div>
-                            <h3 className="font-black text-lg">Cetak Jurnal Mengajar</h3>
-                            <p className="text-sm text-slate-500">Rekap harian aktivitas guru dan catatan ketidakhadiran siswa.</p>
-                        </div>
-                    </div>
+        try {
+          if (isRegisterMode) {
+            await createUserWithEmailAndPassword(auth, email, password);
+            showToast('Akun berhasil didaftarkan!', 'success');
+          } else {
+            await signInWithEmailAndPassword(auth, email, password);
+            showToast('Berhasil masuk!', 'success');
+          }
+        } catch (error) {
+          showToast('Gagal: ' + error.message, 'error');
+        } finally {
+          btn.disabled = false; btn.textContent = isRegisterMode ? 'Daftar Sekarang' : 'Masuk Sekarang';
+        }
+      };
+    }
 
-                    <div className="bg-amber-50 p-6 rounded-2xl border border-amber-200 flex items-start space-x-4">
-                        <Lucide name="Info" className="text-amber-600 shrink-0" />
-                        <p className="text-sm text-amber-800 font-medium">
-                            <strong>Tips:</strong> Untuk hasil cetak terbaik, pastikan pengaturan "Background Graphics" di menu Print browser Anda sudah dicentang.
-                        </p>
-                    </div>
-                </div>
-            );
+    function toggleAuthMode() {
+      isRegisterMode = !isRegisterMode;
+      document.getElementById('auth-title').textContent = isRegisterMode ? "Daftar Akun" : "Masuk Guru";
+      document.getElementById('btn-auth').textContent = isRegisterMode ? "Daftar Sekarang" : "Masuk Sekarang";
+      document.getElementById('auth-toggle-text').innerHTML = isRegisterMode ? 
+        `Sudah punya akun? <button onclick="toggleAuthMode()" class="text-blue-600 font-bold hover:underline">Masuk di sini</button>` :
+        `Belum punya akun? <button onclick="toggleAuthMode()" class="text-blue-600 font-bold hover:underline">Daftar Akun Baru</button>`;
+    }
 
-            const PrintLayout = () => (
-                <div className="print-only p-10 print-container">
-                    <div className="text-center border-b-4 border-double border-slate-800 pb-4 mb-8">
-                        <h1 className="text-2xl font-black">SDIT AL-KAROMAH</h1>
-                        <p className="text-sm font-bold uppercase">Yayasan Pondok Pesantren Al-Hidayah Bani Sya'roni</p>
-                        <p className="text-xs italic">Cililin, Bandung Barat, Jawa Barat</p>
-                    </div>
-                    
-                    <h2 className="text-center font-black underline mb-6">REKAPITULASI NILAI AKHIR SISWA</h2>
-                    
-                    <table className="w-full border-collapse border border-slate-800 text-xs">
-                        <thead>
-                            <tr className="bg-slate-100">
-                                <th className="border border-slate-800 p-2">No</th>
-                                <th className="border border-slate-800 p-2 text-left">Nama Siswa</th>
-                                {subjects.map(s => <th key={s.id} className="border border-slate-800 p-2">{s.name}</th>)}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {students.map((s, idx) => (
-                                <tr key={s.id}>
-                                    <td className="border border-slate-800 p-2 text-center">{idx + 1}</td>
-                                    <td className="border border-slate-800 p-2 font-bold">{s.name}</td>
-                                    {subjects.map(sub => (
-                                        <td key={sub.id} className="border border-slate-800 p-2 text-center">
-                                            {grades[s.id]?.[sub.id] || '-'}
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+    async function logout() {
+      await window.firebaseModules.signOut(window.firebaseAuth);
+    }
 
-                    <div className="mt-20 flex justify-end">
-                        <div className="text-center w-64">
-                            <p>Cililin, {new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})}</p>
-                            <p className="mb-20">Wali Kelas,</p>
-                            <p className="font-black underline">Risman Herdiansyah, S.Pd</p>
-                        </div>
-                    </div>
-                </div>
-            );
+    // ==================== DATA SYNC ====================
+    async function loadAllDataFromFirebase() {
+      if (!currentUser) return;
+      const { doc, getDoc } = window.firebaseModules;
+      try {
+        const snap = await getDoc(doc(window.firebaseDB, 'userData', currentUser.uid));
+        if (snap.exists()) Object.assign(appData, snap.data());
+        refreshAllUI();
+      } catch (e) { showToast('Gagal memuat data', 'error'); }
+    }
 
-            return (
-                <div className="flex h-screen bg-slate-50">
-                    <Sidebar />
-                    <main className="flex-1 flex flex-col overflow-hidden">
-                        <header className="h-20 bg-white border-b flex items-center justify-between px-10 no-print">
-                            <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">ADMIN SDIT AL-KAROMAH</h2>
-                            <button onClick={handlePrint} className="bg-slate-800 text-white px-5 py-2 rounded-xl text-sm font-bold flex items-center hover:bg-black transition-all">
-                                <Lucide name="Printer" size={16} className="mr-2" /> Cetak Halaman
-                            </button>
-                        </header>
-                        
-                        <div className="flex-1 overflow-y-auto p-10 no-print">
-                            <div className="max-w-6xl mx-auto">
-                                {activeTab === 'dashboard' && (
-                                    <div className="bg-white p-20 rounded-[40px] text-center border shadow-sm">
-                                        <h1 className="text-6xl font-arabic text-emerald-900 mb-4">بِسْمِ اللَّهِ</h1>
-                                        <p className="font-bold text-slate-500 uppercase tracking-widest">Wali Kelas: Pak Risman Herdiansyah</p>
-                                    </div>
-                                )}
+    async function saveToFirebase(key, data) {
+      if (!currentUser) return;
+      appData[key] = data;
+      const { doc, setDoc } = window.firebaseModules;
+      try {
+        await setDoc(doc(window.firebaseDB, 'userData', currentUser.uid), JSON.parse(JSON.stringify(appData)));
+        refreshAllUI();
+        return true;
+      } catch (e) { showToast('Gagal menyimpan ke server', 'error'); }
+    }
 
-                                {activeTab === 'students' && (
-                                    <div className="bg-white p-8 rounded-3xl border shadow-sm">
-                                        <h2 className="text-xl font-black mb-6 flex items-center"><Lucide name="Calendar" className="mr-2 text-emerald-600"/> Presensi Hari Ini</h2>
-                                        <div className="space-y-3">
-                                            {students.map(s => (
-                                                <div key={s.id} className="flex items-center justify-between p-4 border rounded-2xl">
-                                                    <span className="font-bold">{s.name}</span>
-                                                    <div className="flex gap-2">
-                                                        {['H', 'S', 'I', 'A'].map(status => (
-                                                            <button key={status} onClick={() => setAttendance(prev => ({...prev, [new Date().toISOString().split('T')[0]]: {...(prev[new Date().toISOString().split('T')[0]] || {}), [s.id]: status}}))}
-                                                                className={`w-10 h-10 rounded-xl font-black text-xs transition-all ${attendance[new Date().toISOString().split('T')[0]]?.[s.id] === status ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 text-slate-400'}`}>
-                                                                {status}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+    // ==================== UI CORE ====================
+    function navigateTo(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+      document.getElementById(`page-${page}`).classList.remove('hidden');
+      document.querySelectorAll('.sidebar-item').forEach(i => {
+        i.classList.remove('active');
+        if(i.dataset.page === page) i.classList.add('active');
+      });
+    }
 
-                                {activeTab === 'grades' && (
-                                    <div className="bg-white rounded-3xl border shadow-sm overflow-hidden">
-                                        <div className="p-6 border-b bg-slate-50">
-                                            <h3 className="font-black">Input Nilai Akhir</h3>
-                                        </div>
-                                        <table className="w-full">
-                                            <thead>
-                                                <tr className="text-left text-[10px] font-black uppercase text-slate-400 bg-slate-50">
-                                                    <th className="p-4">Nama Siswa</th>
-                                                    {subjects.map(sub => <th key={sub.id} className="p-4 text-center">{sub.name}</th>)}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {students.map(s => (
-                                                    <tr key={s.id} className="border-b">
-                                                        <td className="p-4 font-bold">{s.name}</td>
-                                                        {subjects.map(sub => (
-                                                            <td key={sub.id} className="p-2">
-                                                                <input type="number" value={grades[s.id]?.[sub.id] || ""} onChange={e => setGrades(prev => ({...prev, [s.id]: {...prev[s.id], [sub.id]: e.target.value}}))} className="w-16 mx-auto block p-2 border rounded-lg text-center font-bold" />
-                                                            </td>
-                                                        ))}
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
+    function refreshAllUI() {
+      // Update Profil UI
+      const p = appData.profil;
+      document.getElementById('nama-wali').value = p.waliNama || '';
+      document.getElementById('kelas-diampu').value = p.kelasDiampu || '';
+      
+      // Update Stats
+      document.getElementById('stat-siswa').textContent = appData.siswa.length;
+      
+      // Update Sidebar Info & Inisial
+      const name = p.waliNama || currentUser.email.split('@')[0];
+      const initial = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0,2);
+      document.getElementById('teacher-name').textContent = name;
+      document.getElementById('teacher-class').textContent = p.kelasDiampu || 'Kelas -';
+      document.getElementById('teacher-avatar').innerHTML = p.waliFoto ? 
+        `<img src="${p.waliFoto}" class="w-full h-full object-cover">` : 
+        `<div class="w-full h-full flex items-center justify-center bg-blue-600 text-white">${initial}</div>`;
+    }
 
-                                {activeTab === 'journal' && (
-                                    <div className="bg-white p-8 rounded-3xl border shadow-sm max-w-2xl mx-auto">
-                                        <h2 className="text-xl font-black mb-6">Jurnal Mengajar</h2>
-                                        <div className="space-y-4">
-                                            <select className="w-full p-3 border rounded-xl font-bold">
-                                                <option>Pilih Mata Pelajaran</option>
-                                                {subjects.map(s => <option key={s.id}>{s.name}</option>)}
-                                            </select>
-                                            <textarea className="w-full p-3 border rounded-xl h-32" placeholder="Materi yang diajarkan..."></textarea>
-                                            <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100">
-                                                <p className="text-xs font-black uppercase">Siswa Tidak Hadir:</p>
-                                                <p className="font-bold">{getAbsentList(new Date().toISOString().split('T')[0])}</p>
-                                            </div>
-                                            <button className="w-full bg-emerald-600 text-white py-4 rounded-xl font-black">Simpan Jurnal</button>
-                                        </div>
-                                    </div>
-                                )}
+    async function saveProfilData() {
+      const p = {
+        waliNama: document.getElementById('nama-wali').value,
+        kelasDiampu: document.getElementById('kelas-diampu').value
+      };
+      await saveToFirebase('profil', p);
+      showToast('Profil diperbarui', 'success');
+    }
 
-                                {activeTab === 'report' && <ReportView />}
-                            </div>
-                        </div>
+    function showToast(msg, type) {
+      const t = document.createElement('div');
+      t.className = `p-4 mb-2 rounded-lg text-white shadow-lg ${type==='success'?'bg-green-500':'bg-red-500'}`;
+      t.textContent = msg;
+      document.getElementById('toast-container').appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
 
-                        {/* Layout Khusus Cetak */}
-                        <PrintLayout />
-                    </main>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+    initApp();
+  </script>
 </body>
 </html>
